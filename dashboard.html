@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta Ads Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0e1a;
+      --card: #131828;
+      --card-hover: #1a2035;
+      --border: #1e2540;
+      --text: #e8ecf4;
+      --muted: #6b7598;
+      --blue: #1877f2;
+      --green: #00c48c;
+      --red: #ff4d6d;
+      --orange: #ff7c43;
+      --purple: #a78bfa;
+      --yellow: #fbbf24;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      backdrop-filter: blur(8px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #1877f2, #0d5cbf);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+
+    .logo-text h1 { font-size: 16px; font-weight: 700; }
+    .logo-text .sub { font-size: 11px; color: var(--muted); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #accountBadge {
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      transition: all .2s;
+    }
+
+    .icon-btn:hover { background: var(--card-hover); color: var(--text); }
+    .icon-btn.spinning { animation: spin .8s linear infinite; }
+
+    .btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .2s;
+    }
+
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #1568d6; }
+    .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--card-hover); color: var(--text); }
+
+    /* ─── SETUP PANEL ─── */
+    #setupPanel {
+      background: linear-gradient(135deg, #1877f2 0%, #0d4fa3 100%);
+      margin: 20px 28px;
+      border-radius: 14px;
+      padding: 24px 28px;
+    }
+
+    #setupPanel h2 { font-size: 15px; margin-bottom: 6px; color: #fff; }
+    #setupPanel p  { font-size: 12px; color: rgba(255,255,255,.65); margin-bottom: 18px; }
+
+    .setup-row {
+      display: grid;
+      grid-template-columns: 1fr 200px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      color: rgba(255,255,255,.7);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 9px 14px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      transition: border-color .2s;
+    }
+
+    .field input:focus { outline: none; border-color: rgba(255,255,255,.5); }
+    .field input::placeholder { color: rgba(255,255,255,.4); }
+
+    .setup-note {
+      margin-top: 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,.55);
+      line-height: 1.8;
+    }
+
+    .setup-note a { color: rgba(255,255,255,.85); }
+
+    /* ─── MAIN ─── */
+    main { padding: 0 28px 32px; }
+
+    /* ─── DATE BAR ─── */
+    .date-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .date-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all .2s;
+    }
+
+    .date-chip:hover, .date-chip.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .sep { color: var(--border); font-size: 18px; }
+
+    .custom-range {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .custom-range input[type="date"] {
+      padding: 5px 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+    }
+
+    /* ─── ERROR ─── */
+    #errorBox {
+      background: rgba(255,77,109,.08);
+      border: 1px solid rgba(255,77,109,.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--red);
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    /* ─── CARDS GRID ─── */
+    .cards-row {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .cards-row-primary   { grid-template-columns: repeat(4, 1fr); }
+    .cards-row-secondary { grid-template-columns: repeat(4, 1fr); }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, border-color .2s;
+      cursor: default;
+    }
+
+    .kpi-card:hover { transform: translateY(-2px); border-color: #2a3355; }
+
+    .kpi-card .accent {
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      border-radius: 14px 0 0 14px;
+    }
+
+    .kpi-card .icon-bg {
+      position: absolute;
+      bottom: -10px; right: -10px;
+      font-size: 56px;
+      opacity: .06;
+      user-select: none;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .kpi-sub .positive { color: var(--green); font-weight: 700; }
+    .kpi-sub .negative { color: var(--red);   font-weight: 700; }
+
+    /* ─── CHARTS ─── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .chart-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .chart-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-card-title .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 240px;
+    }
+
+    /* ─── TABLE ─── */
+    .table-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .table-top {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      min-width: 900px;
+    }
+
+    thead th {
+      padding: 10px 16px;
+      text-align: left;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .4px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.015);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--card-hover); }
+
+    .td-date      { color: var(--muted); font-size: 11px; }
+    .td-roas-good { color: var(--green); font-weight: 700; }
+    .td-roas-bad  { color: var(--red);   font-weight: 700; }
+    .td-roas-neutral { color: var(--muted); }
+
+    /* ─── LOADING / EMPTY ─── */
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 48px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .spinner-ring {
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted);
+    }
+
+    .empty .big { font-size: 40px; margin-bottom: 10px; opacity: .4; }
+
+    .hidden { display: none !important; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 900px) {
+      .cards-row-primary, .cards-row-secondary { grid-template-columns: repeat(2,1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .setup-row  { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">M</div>
+    <div class="logo-text">
+      <h1>Meta Ads Dashboard</h1>
+      <div class="sub" id="lastRefresh">—</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="accountBadge">No account connected</span>
+    <button class="icon-btn" id="refreshBtn" onclick="loadData()" title="Refresh data">↻</button>
+    <button class="btn btn-outline" onclick="toggleSetup()">⚙ Settings</button>
+  </div>
+</header>
+
+<!-- ═══════════════ SETUP ═══════════════ -->
+<div id="setupPanel">
+  <h2>🔗 Connect Meta Business Manager</h2>
+  <p>Enter your Access Token and Ad Account ID to pull data directly from Meta</p>
+  <div class="setup-row">
+    <div class="field">
+      <label>Access Token</label>
+      <input type="password" id="tokenInput" placeholder="EAAxxxxx... (from Meta for Developers or Business Manager)" />
+    </div>
+    <div class="field">
+      <label>Ad Account ID</label>
+      <input type="text" id="accountInput" placeholder="123456789" />
+    </div>
+    <button class="btn btn-primary" onclick="saveAndLoad()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);height:37px;">
+      Save &amp; Load ▶
+    </button>
+  </div>
+  <div class="setup-note">
+    💡 <strong>How to get your Token:</strong><br>
+    1. Go to <a href="https://developers.facebook.com/tools/explorer" target="_blank">Meta Graph API Explorer</a><br>
+    2. Select your App → Generate Access Token → enable: <code>ads_read</code> &amp; <code>read_insights</code><br>
+    3. Copy your Account ID from Business Manager → Accounts → Ad Accounts
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main>
+
+  <!-- DATE BAR -->
+  <div class="date-bar">
+    <button class="date-chip" data-preset="today"      onclick="pickPreset(this)">Today</button>
+    <button class="date-chip" data-preset="yesterday"  onclick="pickPreset(this)">Yesterday</button>
+    <button class="date-chip active" data-preset="last_7d"   onclick="pickPreset(this)">Last 7 Days</button>
+    <button class="date-chip" data-preset="last_14d"   onclick="pickPreset(this)">Last 14 Days</button>
+    <button class="date-chip" data-preset="last_30d"   onclick="pickPreset(this)">Last 30 Days</button>
+    <button class="date-chip" data-preset="this_month" onclick="pickPreset(this)">This Month</button>
+    <span class="sep">|</span>
+    <div class="custom-range">
+      <input type="date" id="dateFrom" />
+      <span style="color:var(--muted)">→</span>
+      <input type="date" id="dateTo" />
+      <button class="date-chip" onclick="applyCustom()">Apply</button>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorBox"></div>
+
+  <!-- KPI ROW 1 -->
+  <div class="cards-row cards-row-primary">
+    <div class="kpi-card" id="c-spend">     <div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-roas">      <div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-purchases"> <div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-revenue">   <div class="loader"><div class="spinner-ring"></div></div></div>
+  </div>
+
+  <!-- KPI ROW 2 -->
+  <div class="cards-row cards-row-secondary">
+    <div class="kpi-card" id="c-results">     <div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-reach">       <div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-impressions"> <div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-cpp">         <div class="loader"><div class="spinner-ring"></div></div></div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-card-title">
+        <span class="dot" style="background:var(--blue)"></span> Daily Spend
+        <span class="dot" style="background:var(--green); margin-left:8px;"></span> ROAS
+      </div>
+      <div class="chart-wrap"><canvas id="chartMain"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">
+        <span class="dot" style="background:var(--orange)"></span> Daily Purchases
+      </div>
+      <div class="chart-wrap"><canvas id="chartPurchases"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-top">
+      <span>📋 Daily Breakdown</span>
+      <span id="rowCount" style="font-size:11px;color:var(--muted);font-weight:400;"></span>
+    </div>
+    <div class="table-scroll" id="tableWrap">
+      <div class="loader"><div class="spinner-ring"></div><span>Loading...</span></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const S = {
+  token:     localStorage.getItem('meta_token')      || '',
+  accountId: localStorage.getItem('meta_account_id') || '',
+  preset:    'last_7d',
+  since:     '',
+  until:     '',
+  rows:      [],
+  currency:  'USD',
+};
+
+let chartMain      = null;
+let chartPurchases = null;
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+(function init() {
+  if (S.token)     document.getElementById('tokenInput').value   = S.token;
+  if (S.accountId) document.getElementById('accountInput').value = S.accountId;
+
+  if (!S.token || !S.accountId) {
+    document.getElementById('setupPanel').style.display = 'block';
+  } else {
+    document.getElementById('setupPanel').style.display = 'none';
+    loadData();
+  }
+})();
+
+// ══════════════════════════════════════════════
+//  SETUP
+// ══════════════════════════════════════════════
+function toggleSetup() {
+  const p = document.getElementById('setupPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveAndLoad() {
+  const token     = document.getElementById('tokenInput').value.trim();
+  const accountId = document.getElementById('accountInput').value.trim().replace(/^act_/, '');
+  if (!token || !accountId) { alert('Please enter your Access Token and Ad Account ID'); return; }
+  S.token     = token;
+  S.accountId = accountId;
+  localStorage.setItem('meta_token',      token);
+  localStorage.setItem('meta_account_id', accountId);
+  document.getElementById('setupPanel').style.display = 'none';
+  loadData();
+}
+
+// ══════════════════════════════════════════════
+//  DATE HANDLING
+// ══════════════════════════════════════════════
+function pickPreset(btn) {
+  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.preset = btn.dataset.preset;
+  S.since  = '';
+  S.until  = '';
+  loadData();
+}
+
+function applyCustom() {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  if (!from || !to) return;
+  S.since  = from;
+  S.until  = to;
+  S.preset = '';
+  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  loadData();
+}
+
+// ══════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════
+async function loadData() {
+  if (!S.token || !S.accountId) {
+    document.getElementById('setupPanel').style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  hideError();
+
+  const fields = [
+    'spend','impressions','reach','clicks','ctr','cpm','cpc',
+    'purchase_roas','actions','action_values','cost_per_action_type',
+    'date_start','date_stop'
+  ].join(',');
+
+  let qs = `fields=${fields}&time_increment=1&limit=100&access_token=${encodeURIComponent(S.token)}`;
+  if (S.since && S.until) {
+    qs += `&time_range=${encodeURIComponent(JSON.stringify({ since: S.since, until: S.until }))}`;
+  } else {
+    qs += `&date_preset=${S.preset}`;
+  }
+
+  const url = `https://graph.facebook.com/v19.0/act_${S.accountId}/insights?${qs}`;
+
+  try {
+    const data = await apiFetch(url);
+    S.rows = (data.data || []);
+
+    let next = data.paging?.next;
+    while (next) {
+      const more = await apiFetch(next);
+      S.rows.push(...(more.data || []));
+      next = more.paging?.next;
+    }
+
+    S.rows.sort((a, b) => a.date_start.localeCompare(b.date_start));
+
+    await fetchAccountInfo();
+    render(S.rows);
+
+    document.getElementById('lastRefresh').textContent =
+      'Last updated: ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  } catch (err) {
+    showError(err.message);
+    renderEmpty();
+  }
+
+  btn.classList.remove('spinning');
+}
+
+async function apiFetch(url) {
+  const res  = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(`${json.error.message} (code: ${json.error.code})`);
+  return json;
+}
+
+async function fetchAccountInfo() {
+  try {
+    const url  = `https://graph.facebook.com/v19.0/act_${S.accountId}?fields=name,currency&access_token=${encodeURIComponent(S.token)}`;
+    const data = await apiFetch(url);
+    S.currency = data.currency || 'USD';
+    document.getElementById('accountBadge').textContent = `📊 ${data.name || S.accountId}`;
+  } catch (_) {}
+}
+
+// ══════════════════════════════════════════════
+//  DATA HELPERS
+// ══════════════════════════════════════════════
+const PURCHASE_TYPES = ['purchase','omni_purchase','offsite_conversion.fb_pixel_purchase'];
+
+function getAction(arr, types) {
+  if (!arr) return 0;
+  for (const t of types) {
+    const found = arr.find(a => a.action_type === t);
+    if (found) return +found.value || 0;
+  }
+  return 0;
+}
+
+function purchases(row) { return getAction(row.actions,       PURCHASE_TYPES); }
+function revenue(row)   { return getAction(row.action_values, PURCHASE_TYPES); }
+
+function roas(row) {
+  if (row.purchase_roas?.length) return +row.purchase_roas[0].value || 0;
+  const s = +row.spend || 0;
+  const r = revenue(row);
+  return s > 0 ? r / s : 0;
+}
+
+function aggregate(rows) {
+  const t = { spend:0, impressions:0, reach:0, clicks:0, purchases:0, revenue:0 };
+  rows.forEach(r => {
+    t.spend       += +r.spend       || 0;
+    t.impressions += +r.impressions || 0;
+    t.reach       += +r.reach       || 0;
+    t.clicks      += +r.clicks      || 0;
+    t.purchases   += purchases(r);
+    t.revenue     += revenue(r);
+  });
+  t.roas = t.spend > 0 ? t.revenue / t.spend : 0;
+  t.ctr  = t.impressions > 0 ? (t.clicks / t.impressions) * 100 : 0;
+  t.cpm  = t.impressions > 0 ? (t.spend  / t.impressions) * 1000 : 0;
+  t.cpc  = t.clicks > 0 ? t.spend / t.clicks : 0;
+  t.cpp  = t.purchases > 0 ? t.spend / t.purchases : 0;
+  return t;
+}
+
+// ══════════════════════════════════════════════
+//  FORMAT
+// ══════════════════════════════════════════════
+function num(n, d = 0)  { return (+n || 0).toLocaleString('en-US', { maximumFractionDigits: d }); }
+function money(n)       { return num(n, 2); }
+function pct(n)         { return num(n, 2) + '%'; }
+function fmtK(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return num(n);
+}
+function fmtDate(d) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function currSign() {
+  const map = { USD:'$', EGP:'EGP ', EUR:'€', GBP:'£', SAR:'SAR ', AED:'AED ' };
+  return map[S.currency] || S.currency + ' ';
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function render(rows) {
+  const t = aggregate(rows);
+  const c = currSign();
+
+  setCard('c-spend', {
+    label: 'Total Spend', icon: '💸',
+    value: c + money(t.spend),
+    sub:   `CPC: ${c}${money(t.cpc)} &nbsp;|&nbsp; CPM: ${c}${money(t.cpm)}`,
+    accent: 'var(--blue)'
+  });
+
+  setCard('c-roas', {
+    label: 'ROAS', icon: '📈',
+    value: num(t.roas, 2) + 'x',
+    sub: t.roas >= 1
+      ? `<span class="positive">↑ Great return</span>`
+      : t.roas > 0
+        ? `<span class="negative">↓ Below break-even</span>`
+        : '—',
+    accent: t.roas >= 1 ? 'var(--green)' : t.roas > 0 ? 'var(--red)' : 'var(--muted)'
+  });
+
+  setCard('c-purchases', {
+    label: 'Purchases', icon: '🛒',
+    value: num(t.purchases),
+    sub:   `Cost/Purchase: ${t.cpp > 0 ? c + money(t.cpp) : '—'}`,
+    accent: 'var(--orange)'
+  });
+
+  setCard('c-revenue', {
+    label: 'Purchase Value', icon: '💰',
+    value: c + money(t.revenue),
+    sub:   `From ${num(t.purchases)} purchases`,
+    accent: 'var(--yellow)'
+  });
+
+  setCard('c-results', {
+    label: 'Results', icon: '🎯',
+    value: num(t.purchases),
+    sub:   'Based on purchase events',
+    accent: 'var(--purple)'
+  });
+
+  setCard('c-reach', {
+    label: 'Reach', icon: '👁',
+    value: fmtK(t.reach),
+    sub:   `Impressions: ${fmtK(t.impressions)}`,
+    accent: 'var(--blue)'
+  });
+
+  setCard('c-impressions', {
+    label: 'Impressions', icon: '📺',
+    value: fmtK(t.impressions),
+    sub:   `CTR: ${pct(t.ctr)}`,
+    accent: '#334155'
+  });
+
+  setCard('c-cpp', {
+    label: 'Cost per Purchase', icon: '🏷',
+    value: t.cpp > 0 ? c + money(t.cpp) : '—',
+    sub:   `CPC: ${c}${money(t.cpc)}`,
+    accent: '#334155'
+  });
+
+  renderCharts(rows);
+  renderTable(rows);
+  document.getElementById('rowCount').textContent = rows.length + ' days';
+}
+
+function setCard(id, { label, icon, value, sub, accent }) {
+  document.getElementById(id).innerHTML = `
+    <div class="accent" style="background:${accent}"></div>
+    <div class="icon-bg">${icon}</div>
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-sub">${sub}</div>
+  `;
+}
+
+// ══════════════════════════════════════════════
+//  CHARTS
+// ══════════════════════════════════════════════
+function renderCharts(rows) {
+  const labels    = rows.map(r => fmtDate(r.date_start));
+  const spendData = rows.map(r => +r.spend || 0);
+  const roasData  = rows.map(r => roas(r));
+  const purchData = rows.map(r => purchases(r));
+
+  if (chartMain) chartMain.destroy();
+  chartMain = new Chart(document.getElementById('chartMain'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Spend',
+          data: spendData,
+          borderColor: '#1877f2',
+          backgroundColor: 'rgba(24,119,242,0.08)',
+          fill: true,
+          tension: 0.4,
+          yAxisID: 'ySpend',
+          pointRadius: 3,
+          pointBackgroundColor: '#1877f2',
+        },
+        {
+          label: 'ROAS',
+          data: roasData,
+          borderColor: '#00c48c',
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.4,
+          yAxisID: 'yRoas',
+          pointRadius: 3,
+          pointBackgroundColor: '#00c48c',
+          borderDash: [5, 3],
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: '#6b7598', font: { family: 'Inter', size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.dataset.yAxisID === 'ySpend'
+              ? `Spend: ${currSign()}${money(ctx.parsed.y)}`
+              : `ROAS: ${num(ctx.parsed.y, 2)}x`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#6b7598', font: { family: 'Inter', size: 10 } },
+          grid:  { color: 'rgba(255,255,255,0.03)' }
+        },
+        ySpend: {
+          type: 'linear', position: 'right',
+          ticks: { color: '#1877f2', callback: v => currSign() + num(v), font: { size: 10 } },
+          grid:  { color: 'rgba(255,255,255,0.03)' }
+        },
+        yRoas: {
+          type: 'linear', position: 'left',
+          ticks: { color: '#00c48c', callback: v => num(v, 1) + 'x', font: { size: 10 } },
+          grid:  { display: false }
+        }
+      }
+    }
+  });
+
+  if (chartPurchases) chartPurchases.destroy();
+  chartPurchases = new Chart(document.getElementById('chartPurchases'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Purchases',
+        data: purchData,
+        backgroundColor: 'rgba(255,124,67,0.65)',
+        borderColor: '#ff7c43',
+        borderWidth: 1,
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `Purchases: ${num(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#6b7598', font: { family: 'Inter', size: 10 } },
+          grid:  { color: 'rgba(255,255,255,0.03)' }
+        },
+        y: {
+          ticks: { color: '#6b7598', font: { size: 10 }, stepSize: 1 },
+          grid:  { color: 'rgba(255,255,255,0.03)' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════
+//  TABLE
+// ══════════════════════════════════════════════
+function renderTable(rows) {
+  const wrap = document.getElementById('tableWrap');
+  if (!rows.length) {
+    wrap.innerHTML = '<div class="empty"><div class="big">📊</div><p>No data for the selected period</p></div>';
+    return;
+  }
+
+  const c = currSign();
+  const displayRows = [...rows].reverse();
+
+  let html = `<table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Spend</th>
+        <th>ROAS</th>
+        <th>Purchases</th>
+        <th>Purchase Value</th>
+        <th>Cost / Purchase</th>
+        <th>Results</th>
+        <th>Reach</th>
+        <th>Impressions</th>
+        <th>Clicks</th>
+        <th>CTR</th>
+        <th>CPM</th>
+        <th>CPC</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  displayRows.forEach(row => {
+    const sp  = +row.spend       || 0;
+    const imp = +row.impressions || 0;
+    const re  = +row.reach       || 0;
+    const cl  = +row.clicks      || 0;
+    const ct  = +row.ctr         || 0;
+    const cp  = +row.cpm         || 0;
+    const cc  = +row.cpc         || 0;
+    const pu  = purchases(row);
+    const rv  = revenue(row);
+    const ro  = roas(row);
+    const cpp = pu > 0 ? sp / pu : 0;
+
+    const roasClass = ro >= 2 ? 'td-roas-good' : ro >= 1 ? '' : ro > 0 ? 'td-roas-bad' : 'td-roas-neutral';
+
+    html += `<tr>
+      <td class="td-date">${fmtDate(row.date_start)}</td>
+      <td>${c}${money(sp)}</td>
+      <td class="${roasClass}">${ro > 0 ? num(ro, 2) + 'x' : '—'}</td>
+      <td>${num(pu)}</td>
+      <td>${rv > 0 ? c + money(rv) : '—'}</td>
+      <td>${cpp > 0 ? c + money(cpp) : '—'}</td>
+      <td>${num(pu)}</td>
+      <td>${fmtK(re)}</td>
+      <td>${fmtK(imp)}</td>
+      <td>${num(cl)}</td>
+      <td>${pct(ct)}</td>
+      <td>${c}${money(cp)}</td>
+      <td>${c}${money(cc)}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  ERROR / EMPTY
+// ══════════════════════════════════════════════
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+
+function renderEmpty() {
+  ['c-spend','c-roas','c-purchases','c-revenue','c-results','c-reach','c-impressions','c-cpp'].forEach(id => {
+    document.getElementById(id).innerHTML = `
+      <div class="kpi-label">—</div>
+      <div class="kpi-value" style="color:var(--muted)">—</div>
+    `;
+  });
+  document.getElementById('tableWrap').innerHTML =
+    '<div class="empty"><div class="big">⚠️</div><p>Failed to load data — check your Token and permissions</p></div>';
+}
+</script>
+</body>
+</html>
