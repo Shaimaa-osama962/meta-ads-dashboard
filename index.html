@@ -411,6 +411,145 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ─── CREATIVES ─── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sort-tabs {
+      display: flex;
+      gap: 6px;
+    }
+
+    .sort-tab {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all .2s;
+    }
+
+    .sort-tab:hover, .sort-tab.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .creatives-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .creative-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: transform .2s, border-color .2s;
+    }
+
+    .creative-card:hover { transform: translateY(-2px); border-color: #2a3355; }
+
+    .creative-thumb {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      background: var(--bg);
+      display: block;
+    }
+
+    .creative-thumb-placeholder {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: linear-gradient(135deg, #1a2035, #0f1425);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      opacity: .4;
+    }
+
+    .creative-body { padding: 14px; }
+
+    .creative-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .creative-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .cm {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 7px 10px;
+    }
+
+    .cm-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 2px;
+    }
+
+    .cm-value {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .roas-good { color: var(--green); }
+    .roas-bad  { color: var(--red); }
+
+    .creative-rank {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,.7);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .creative-card { position: relative; }
+
+    @media (max-width: 900px) {
+      .creatives-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
     @media (max-width: 900px) {
       .cards-row-primary, .cards-row-secondary { grid-template-columns: repeat(2,1fr); }
       .charts-row { grid-template-columns: 1fr; }
@@ -515,6 +654,19 @@
       </div>
       <div class="chart-wrap"><canvas id="chartPurchases"></canvas></div>
     </div>
+  </div>
+
+  <!-- BEST PERFORMING CREATIVES -->
+  <div class="section-header">
+    <div class="section-title">🏆 Best Performing Creatives</div>
+    <div class="sort-tabs">
+      <button class="sort-tab active" onclick="sortCreatives('roas',this)">By ROAS</button>
+      <button class="sort-tab" onclick="sortCreatives('purchases',this)">By Purchases</button>
+      <button class="sort-tab" onclick="sortCreatives('spend',this)">By Spend</button>
+    </div>
+  </div>
+  <div class="creatives-grid" id="creativesGrid">
+    <div style="grid-column:1/-1"><div class="loader"><div class="spinner-ring"></div><span>Loading creatives...</span></div></div>
   </div>
 
   <!-- TABLE -->
@@ -648,6 +800,7 @@ async function loadData() {
 
     await fetchAccountInfo();
     render(S.rows);
+    loadCreatives();
 
     document.getElementById('lastRefresh').textContent =
       'Last updated: ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -997,6 +1150,108 @@ function renderTable(rows) {
 
   html += '</tbody></table>';
   wrap.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  CREATIVES
+// ══════════════════════════════════════════════
+let allCreatives = [];
+
+async function loadCreatives() {
+  const grid = document.getElementById('creativesGrid');
+  grid.innerHTML = '<div style="grid-column:1/-1"><div class="loader"><div class="spinner-ring"></div><span>Loading creatives...</span></div></div>';
+
+  let qs = `level=ad&fields=ad_name,ad_id,spend,purchase_roas,actions,action_values,impressions,clicks,ctr,cpm&limit=50&access_token=${encodeURIComponent(S.token)}`;
+  if (S.since && S.until) {
+    qs += `&time_range=${encodeURIComponent(JSON.stringify({ since: S.since, until: S.until }))}`;
+  } else {
+    qs += `&date_preset=${S.preset}`;
+  }
+
+  try {
+    const [insightsRes, adsRes] = await Promise.all([
+      apiFetch(`https://graph.facebook.com/v19.0/act_${S.accountId}/insights?${qs}`),
+      apiFetch(`https://graph.facebook.com/v19.0/act_${S.accountId}/ads?fields=id,creative{thumbnail_url,image_url}&limit=100&access_token=${encodeURIComponent(S.token)}`)
+    ]);
+
+    const thumbMap = {};
+    (adsRes.data || []).forEach(ad => {
+      thumbMap[ad.id] = ad.creative?.thumbnail_url || ad.creative?.image_url || null;
+    });
+
+    allCreatives = (insightsRes.data || []).map(row => ({
+      id:        row.ad_id,
+      name:      row.ad_name || 'Unnamed Ad',
+      spend:     +row.spend || 0,
+      roas:      roas(row),
+      purchases: purchases(row),
+      revenue:   revenue(row),
+      ctr:       +row.ctr || 0,
+      cpm:       +row.cpm || 0,
+      thumb:     thumbMap[row.ad_id] || null,
+    })).filter(c => c.spend > 0);
+
+    sortCreatives('roas', document.querySelector('.sort-tab'));
+  } catch (err) {
+    grid.innerHTML = `<div style="grid-column:1/-1"><div class="empty"><div class="big">⚠️</div><p>Could not load creatives</p></div></div>`;
+  }
+}
+
+function sortCreatives(by, btn) {
+  if (btn) {
+    document.querySelectorAll('.sort-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const sorted = [...allCreatives].sort((a, b) => b[by] - a[by]).slice(0, 8);
+  renderCreatives(sorted, by);
+}
+
+function renderCreatives(list, sortBy = 'roas') {
+  const grid = document.getElementById('creativesGrid');
+  const c = currSign();
+
+  if (!list.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1"><div class="empty"><div class="big">🎨</div><p>No creative data for this period</p></div></div>';
+    return;
+  }
+
+  grid.innerHTML = list.map((cr, i) => {
+    const roasClass = cr.roas >= 2 ? 'roas-good' : cr.roas >= 1 ? '' : cr.roas > 0 ? 'roas-bad' : '';
+    const thumbHtml = cr.thumb
+      ? `<img class="creative-thumb" src="${cr.thumb}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      + `<div class="creative-thumb-placeholder" style="display:none">🖼</div>`
+      : `<div class="creative-thumb-placeholder">🖼</div>`;
+
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+
+    return `
+      <div class="creative-card">
+        <span class="creative-rank">${medal}</span>
+        ${thumbHtml}
+        <div class="creative-body">
+          <div class="creative-name" title="${cr.name}">${cr.name}</div>
+          <div class="creative-metrics">
+            <div class="cm">
+              <div class="cm-label">ROAS</div>
+              <div class="cm-value ${roasClass}">${cr.roas > 0 ? num(cr.roas, 2) + 'x' : '—'}</div>
+            </div>
+            <div class="cm">
+              <div class="cm-label">Spend</div>
+              <div class="cm-value">${c}${money(cr.spend)}</div>
+            </div>
+            <div class="cm">
+              <div class="cm-label">Purchases</div>
+              <div class="cm-value">${num(cr.purchases)}</div>
+            </div>
+            <div class="cm">
+              <div class="cm-label">CTR</div>
+              <div class="cm-value">${pct(cr.ctr)}</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 // ══════════════════════════════════════════════
