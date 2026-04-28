@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Media Plan — Meta Ads</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0e1a;
+      --card: #131828;
+      --card-hover: #1a2035;
+      --border: #1e2540;
+      --text: #e8ecf4;
+      --muted: #6b7598;
+      --blue: #1877f2;
+      --green: #00c48c;
+      --red: #ff4d6d;
+      --orange: #ff7c43;
+      --purple: #a78bfa;
+      --yellow: #fbbf24;
+      --teal: #22d3ee;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .logo { display: flex; align-items: center; gap: 12px; }
+
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, #1877f2, #0d5cbf);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 20px; font-weight: 900; color: #fff; letter-spacing: -1px;
+    }
+
+    .logo-text h1 { font-size: 16px; font-weight: 700; }
+    .logo-text .sub { font-size: 11px; color: var(--muted); }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    #accountBadge {
+      font-size: 12px; color: var(--muted);
+      background: var(--bg); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 20px;
+    }
+
+    .nav-tabs {
+      display: flex; gap: 4px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px;
+    }
+
+    .nav-tab {
+      padding: 6px 16px; border-radius: 7px; border: none;
+      background: transparent; color: var(--muted);
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all .2s; text-decoration: none;
+      display: inline-flex; align-items: center;
+    }
+
+    .nav-tab:hover { color: var(--text); background: var(--card-hover); }
+    .nav-tab.active { background: var(--blue); color: #fff; }
+
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 8px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); cursor: pointer; display: grid;
+      place-items: center; font-size: 15px; transition: all .2s;
+    }
+    .icon-btn:hover { background: var(--card-hover); color: var(--text); }
+    .icon-btn.spinning { animation: spin .8s linear infinite; }
+
+    .btn {
+      padding: 8px 18px; border-radius: 8px; border: none;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 600; transition: all .2s;
+    }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #1568d6; }
+    .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--card-hover); color: var(--text); }
+
+    /* ── SETUP PANEL ── */
+    #setupPanel {
+      background: linear-gradient(135deg, #1877f2 0%, #0d4fa3 100%);
+      margin: 20px 28px;
+      border-radius: 14px;
+      padding: 24px 28px;
+    }
+
+    #setupPanel h2 { font-size: 15px; margin-bottom: 6px; color: #fff; }
+    #setupPanel p  { font-size: 12px; color: rgba(255,255,255,.65); margin-bottom: 18px; }
+
+    .setup-row {
+      display: grid;
+      grid-template-columns: 1fr 200px auto;
+      gap: 10px; align-items: end;
+    }
+
+    .field label {
+      display: block; font-size: 11px; color: rgba(255,255,255,.7);
+      margin-bottom: 5px; font-weight: 600;
+    }
+
+    .field input {
+      width: 100%; padding: 9px 14px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+      border-radius: 8px; color: #fff;
+      font-family: 'Inter', sans-serif; font-size: 13px;
+    }
+    .field input:focus { outline: none; border-color: rgba(255,255,255,.5); }
+    .field input::placeholder { color: rgba(255,255,255,.4); }
+
+    /* ── MAIN ── */
+    main { padding: 0 28px 40px; }
+
+    /* ── DATE BAR ── */
+    .date-bar {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 22px; flex-wrap: wrap;
+    }
+
+    .date-chip {
+      padding: 6px 14px; border-radius: 20px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); cursor: pointer;
+      font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+      transition: all .2s;
+    }
+    .date-chip:hover, .date-chip.active {
+      background: var(--blue); border-color: var(--blue); color: #fff;
+    }
+    .sep { color: var(--border); font-size: 18px; }
+    .custom-range { display: flex; align-items: center; gap: 6px; }
+    .custom-range input[type="date"] {
+      padding: 5px 10px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Inter', sans-serif; font-size: 12px;
+    }
+
+    /* ── ERROR ── */
+    #errorBox {
+      background: rgba(255,77,109,.08); border: 1px solid rgba(255,77,109,.3);
+      border-radius: 10px; padding: 12px 16px; color: var(--red);
+      font-size: 13px; margin-bottom: 18px; display: none;
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+    }
+    .section-title {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── KPI CARDS ── */
+    .cards-row {
+      display: grid; gap: 14px; margin-bottom: 22px;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px;
+      position: relative; overflow: hidden;
+      transition: transform .2s, border-color .2s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); border-color: #2a3355; }
+    .kpi-card .accent {
+      position: absolute; top: 0; left: 0;
+      width: 3px; height: 100%;
+      border-radius: 14px 0 0 14px;
+    }
+    .kpi-card .icon-bg {
+      position: absolute; bottom: -10px; right: -10px;
+      font-size: 56px; opacity: .06; user-select: none;
+    }
+    .kpi-label {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 6px;
+    }
+    .kpi-sub { font-size: 11px; color: var(--muted); }
+    .kpi-sub .positive { color: var(--green); font-weight: 700; }
+    .kpi-sub .negative { color: var(--red);   font-weight: 700; }
+
+    /* ── CHARTS ROW ── */
+    .charts-row {
+      display: grid; grid-template-columns: 5fr 3fr;
+      gap: 14px; margin-bottom: 22px;
+    }
+
+    .chart-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px;
+    }
+    .chart-card-title {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .chart-card-title .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .chart-wrap { position: relative; height: 240px; }
+
+    /* ── CAMPAIGN TABLE ── */
+    .table-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden; margin-bottom: 22px;
+    }
+    .table-top {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 13px; font-weight: 700;
+    }
+    .table-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 1000px; }
+    thead th {
+      padding: 10px 14px; text-align: left;
+      color: var(--muted); font-size: 11px; font-weight: 700;
+      letter-spacing: .4px; border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,.015); white-space: nowrap;
+    }
+    tbody td {
+      padding: 11px 14px; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,.03); white-space: nowrap;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--card-hover); }
+
+    /* ── STATUS BADGES ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .badge-active    { background: rgba(0,196,140,.12); color: var(--green); }
+    .badge-paused    { background: rgba(107,117,152,.12); color: var(--muted); }
+    .badge-archived  { background: rgba(255,77,109,.08); color: var(--red); }
+    .badge-deleted   { background: rgba(255,77,109,.08); color: var(--red); }
+
+    /* ── PACING BAR ── */
+    .pacing-wrap { width: 80px; }
+    .pacing-bar {
+      height: 6px; border-radius: 3px; background: var(--border);
+      overflow: hidden; margin-bottom: 3px;
+    }
+    .pacing-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+    .pacing-label { font-size: 10px; color: var(--muted); }
+
+    /* ── OBJECTIVE CHIP ── */
+    .obj {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 600;
+      background: rgba(24,119,242,.12); color: var(--blue); white-space: nowrap;
+    }
+
+    /* ── TIMELINE ── */
+    .timeline-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; margin-bottom: 22px; overflow-x: auto;
+    }
+    .timeline-title {
+      font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #timelineChart { display: block; }
+
+    /* ── ADSET TABLE ── */
+    .adset-table { font-size: 11.5px; }
+    .adset-table thead th { font-size: 10px; }
+    .adset-table tbody td { padding: 9px 14px; }
+
+    /* ── LOADER ── */
+    .loader {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; padding: 48px;
+      color: var(--muted); font-size: 13px;
+    }
+    .spinner-ring {
+      width: 30px; height: 30px;
+      border: 3px solid var(--border); border-top-color: var(--blue);
+      border-radius: 50%; animation: spin .7s linear infinite;
+    }
+    .empty { text-align: center; padding: 48px; color: var(--muted); }
+    .empty .big { font-size: 40px; margin-bottom: 10px; opacity: .4; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ROAS COLORS ── */
+    .roas-good    { color: var(--green); font-weight: 700; }
+    .roas-mid     { color: var(--yellow); font-weight: 700; }
+    .roas-bad     { color: var(--red); font-weight: 700; }
+    .roas-neutral { color: var(--muted); }
+
+    /* ── COLLAPSE ── */
+    .campaign-row td { cursor: pointer; }
+    .campaign-row td:first-child { font-weight: 700; }
+    .adset-section { display: none; }
+    .adset-section.open { display: table-row-group; }
+    .adset-parent { background: rgba(24,119,242,.04) !important; }
+
+    @media (max-width: 900px) {
+      .cards-row { grid-template-columns: repeat(2,1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .setup-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">M</div>
+    <div class="logo-text">
+      <h1>Meta Ads — Media Plan</h1>
+      <div class="sub" id="lastRefresh">—</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="nav-tabs">
+      <a class="nav-tab" href="index.html">📊 Dashboard</a>
+      <a class="nav-tab active" href="media-plan.html">📋 Media Plan</a>
+    </div>
+    <span id="accountBadge">No account connected</span>
+    <button class="icon-btn" id="refreshBtn" onclick="loadData()" title="Refresh">↻</button>
+    <button class="btn btn-outline" onclick="toggleSetup()">⚙ Settings</button>
+  </div>
+</header>
+
+<!-- ═══════════════ SETUP ═══════════════ -->
+<div id="setupPanel" style="display:none">
+  <h2>🔗 Connect Meta Business Manager</h2>
+  <p>Enter your Access Token and Ad Account ID to pull campaign data</p>
+  <div class="setup-row">
+    <div class="field">
+      <label>Access Token</label>
+      <input type="password" id="tokenInput" placeholder="EAAxxxxx..." />
+    </div>
+    <div class="field">
+      <label>Ad Account ID</label>
+      <input type="text" id="accountInput" placeholder="123456789" />
+    </div>
+    <button class="btn btn-primary"
+      onclick="saveAndLoad()"
+      style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);height:37px;">
+      Save &amp; Load ▶
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main>
+
+  <!-- DATE BAR -->
+  <div class="date-bar" style="margin-top:20px">
+    <button class="date-chip" data-preset="today"      onclick="pickPreset(this)">Today</button>
+    <button class="date-chip" data-preset="yesterday"  onclick="pickPreset(this)">Yesterday</button>
+    <button class="date-chip active" data-preset="last_7d"   onclick="pickPreset(this)">Last 7 Days</button>
+    <button class="date-chip" data-preset="last_14d"   onclick="pickPreset(this)">Last 14 Days</button>
+    <button class="date-chip" data-preset="last_30d"   onclick="pickPreset(this)">Last 30 Days</button>
+    <button class="date-chip" data-preset="this_month" onclick="pickPreset(this)">This Month</button>
+    <span class="sep">|</span>
+    <div class="custom-range">
+      <input type="date" id="dateFrom" />
+      <span style="color:var(--muted)">→</span>
+      <input type="date" id="dateTo" />
+      <button class="date-chip" onclick="applyCustom()">Apply</button>
+    </div>
+  </div>
+
+  <!-- ERROR -->
+  <div id="errorBox"></div>
+
+  <!-- KPI CARDS -->
+  <div class="cards-row">
+    <div class="kpi-card" id="c-campaigns"><div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-adsets"><div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-budget"><div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-spend"><div class="loader"><div class="spinner-ring"></div></div></div>
+    <div class="kpi-card" id="c-roas"><div class="loader"><div class="spinner-ring"></div></div></div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-card-title">
+        <span class="dot" style="background:var(--blue)"></span>
+        Spend per Campaign
+      </div>
+      <div class="chart-wrap"><canvas id="chartSpend"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">
+        <span class="dot" style="background:var(--purple)"></span>
+        Budget Allocation
+      </div>
+      <div class="chart-wrap"><canvas id="chartBudget"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGN TABLE -->
+  <div class="table-card">
+    <div class="table-top">
+      <span>📋 Campaign Media Plan</span>
+      <span id="campaignCount" style="font-size:11px;color:var(--muted);font-weight:400;"></span>
+    </div>
+    <div class="table-scroll" id="campaignTableWrap">
+      <div class="loader"><div class="spinner-ring"></div><span>Loading campaigns...</span></div>
+    </div>
+  </div>
+
+  <!-- AD SET TABLE -->
+  <div class="table-card">
+    <div class="table-top">
+      <span>🎯 Ad Set Breakdown</span>
+      <span id="adsetCount" style="font-size:11px;color:var(--muted);font-weight:400;"></span>
+    </div>
+    <div class="table-scroll" id="adsetTableWrap">
+      <div class="loader"><div class="spinner-ring"></div><span>Loading ad sets...</span></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const S = {
+  token:     localStorage.getItem('meta_token')      || '',
+  accountId: localStorage.getItem('meta_account_id') || '',
+  preset:    'last_7d',
+  since:     '',
+  until:     '',
+  currency:  'USD',
+};
+
+let chartSpend  = null;
+let chartBudget = null;
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+(function init() {
+  if (S.token)     document.getElementById('tokenInput').value   = S.token;
+  if (S.accountId) document.getElementById('accountInput').value = S.accountId;
+
+  if (!S.token || !S.accountId) {
+    document.getElementById('setupPanel').style.display = 'block';
+  } else {
+    loadData();
+  }
+})();
+
+// ══════════════════════════════════════════════
+//  SETUP
+// ══════════════════════════════════════════════
+function toggleSetup() {
+  const p = document.getElementById('setupPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveAndLoad() {
+  const token     = document.getElementById('tokenInput').value.trim();
+  const accountId = document.getElementById('accountInput').value.trim().replace(/^act_/, '');
+  if (!token || !accountId) { alert('Please enter your Access Token and Ad Account ID'); return; }
+  S.token     = token;
+  S.accountId = accountId;
+  localStorage.setItem('meta_token',      token);
+  localStorage.setItem('meta_account_id', accountId);
+  document.getElementById('setupPanel').style.display = 'none';
+  loadData();
+}
+
+// ══════════════════════════════════════════════
+//  DATE HANDLING
+// ══════════════════════════════════════════════
+function pickPreset(btn) {
+  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.preset = btn.dataset.preset;
+  S.since  = '';
+  S.until  = '';
+  loadData();
+}
+
+function applyCustom() {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  if (!from || !to) return;
+  S.since  = from;
+  S.until  = to;
+  S.preset = '';
+  document.querySelectorAll('.date-chip').forEach(b => b.classList.remove('active'));
+  loadData();
+}
+
+// ══════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════
+async function apiFetch(url) {
+  const res  = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(`${json.error.message} (code: ${json.error.code})`);
+  return json;
+}
+
+function dateQS() {
+  if (S.since && S.until)
+    return `time_range=${encodeURIComponent(JSON.stringify({ since: S.since, until: S.until }))}`;
+  return `date_preset=${S.preset}`;
+}
+
+async function fetchAll(url) {
+  const results = [];
+  let next = url;
+  while (next) {
+    const data = await apiFetch(next);
+    results.push(...(data.data || []));
+    next = data.paging?.next || null;
+  }
+  return results;
+}
+
+async function loadData() {
+  if (!S.token || !S.accountId) {
+    document.getElementById('setupPanel').style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  hideError();
+
+  try {
+    await fetchAccountInfo();
+
+    const insightFields = 'spend,purchase_roas,actions,action_values,impressions,reach,clicks';
+    const dq = dateQS();
+    const tk = encodeURIComponent(S.token);
+    const aid = S.accountId;
+
+    // Campaigns + their insights
+    const campaignFields = `name,objective,status,daily_budget,lifetime_budget,start_time,stop_time,insights{${insightFields}}`;
+    const campaignUrl = `https://graph.facebook.com/v19.0/act_${aid}/campaigns?fields=${campaignFields}&${dq}&limit=200&access_token=${tk}`;
+
+    // Ad Sets + their insights
+    const adsetFields = `name,campaign_id,status,daily_budget,lifetime_budget,targeting,start_time,end_time,insights{${insightFields}}`;
+    const adsetUrl = `https://graph.facebook.com/v19.0/act_${aid}/adsets?fields=${adsetFields}&${dq}&limit=200&access_token=${tk}`;
+
+    const [campaigns, adsets] = await Promise.all([
+      fetchAll(campaignUrl),
+      fetchAll(adsetUrl),
+    ]);
+
+    render(campaigns, adsets);
+
+    document.getElementById('lastRefresh').textContent =
+      'Last updated: ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  } catch (err) {
+    showError(err.message);
+  }
+
+  btn.classList.remove('spinning');
+}
+
+async function fetchAccountInfo() {
+  try {
+    const url  = `https://graph.facebook.com/v19.0/act_${S.accountId}?fields=name,currency&access_token=${encodeURIComponent(S.token)}`;
+    const data = await apiFetch(url);
+    S.currency = data.currency || 'USD';
+    document.getElementById('accountBadge').textContent = `📊 ${data.name || S.accountId}`;
+  } catch (_) {}
+}
+
+// ══════════════════════════════════════════════
+//  DATA HELPERS
+// ══════════════════════════════════════════════
+const PURCHASE_TYPES = ['purchase','omni_purchase','offsite_conversion.fb_pixel_purchase'];
+
+function getAction(arr, types) {
+  if (!arr) return 0;
+  for (const t of types) {
+    const found = arr.find(a => a.action_type === t);
+    if (found) return +found.value || 0;
+  }
+  return 0;
+}
+
+function insightSpend(item)     { return +(item.insights?.data?.[0]?.spend)       || 0; }
+function insightImp(item)       { return +(item.insights?.data?.[0]?.impressions)  || 0; }
+function insightReach(item)     { return +(item.insights?.data?.[0]?.reach)        || 0; }
+function insightClicks(item)    { return +(item.insights?.data?.[0]?.clicks)       || 0; }
+function insightPurchases(item) {
+  const ins = item.insights?.data?.[0];
+  return ins ? getAction(ins.actions, PURCHASE_TYPES) : 0;
+}
+function insightRevenue(item) {
+  const ins = item.insights?.data?.[0];
+  return ins ? getAction(ins.action_values, PURCHASE_TYPES) : 0;
+}
+function insightRoas(item) {
+  const ins = item.insights?.data?.[0];
+  if (!ins) return 0;
+  if (ins.purchase_roas?.length) return +ins.purchase_roas[0].value || 0;
+  const sp = +ins.spend || 0;
+  const rv = insightRevenue(item);
+  return sp > 0 ? rv / sp : 0;
+}
+
+function campaignBudget(c) {
+  const d = +(c.daily_budget)    || 0;
+  const l = +(c.lifetime_budget) || 0;
+  return { daily: d / 100, lifetime: l / 100, type: l > 0 ? 'Lifetime' : d > 0 ? 'Daily' : '—' };
+}
+
+// ══════════════════════════════════════════════
+//  FORMAT
+// ══════════════════════════════════════════════
+const num   = (n, d = 0) => (+n || 0).toLocaleString('en-US', { maximumFractionDigits: d });
+const money = n  => num(n, 2);
+const fmtK  = n  => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : num(n);
+const pct   = n  => num(n, 2) + '%';
+
+function currSign() {
+  const map = { USD:'$', EGP:'EGP ', EUR:'€', GBP:'£', SAR:'SAR ', AED:'AED ' };
+  return map[S.currency] || S.currency + ' ';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+}
+
+function objLabel(obj) {
+  const map = {
+    OUTCOME_SALES: 'Sales', OUTCOME_LEADS: 'Leads', OUTCOME_ENGAGEMENT: 'Engagement',
+    OUTCOME_TRAFFIC: 'Traffic', OUTCOME_AWARENESS: 'Awareness', OUTCOME_APP_PROMOTION: 'App',
+    CONVERSIONS: 'Conversions', LINK_CLICKS: 'Traffic', BRAND_AWARENESS: 'Awareness',
+    REACH: 'Reach', VIDEO_VIEWS: 'Video Views', LEAD_GENERATION: 'Leads',
+    MESSAGES: 'Messages', CATALOG_SALES: 'Catalog', STORE_VISITS: 'Store Visits',
+  };
+  return map[obj] || (obj || '—').replace(/_/g, ' ');
+}
+
+function statusBadge(s) {
+  const cls = { ACTIVE:'badge-active', PAUSED:'badge-paused', ARCHIVED:'badge-archived', DELETED:'badge-deleted' };
+  return `<span class="badge ${cls[s] || 'badge-paused'}">${s || '—'}</span>`;
+}
+
+function roasClass(r) {
+  return r >= 2 ? 'roas-good' : r >= 1 ? 'roas-mid' : r > 0 ? 'roas-bad' : 'roas-neutral';
+}
+
+function pacingHtml(spend, budget) {
+  if (!budget || budget <= 0) return '<span style="color:var(--muted)">—</span>';
+  const pct = Math.min((spend / budget) * 100, 100);
+  const color = pct > 90 ? '#ff4d6d' : pct > 70 ? '#fbbf24' : '#00c48c';
+  return `<div class="pacing-wrap">
+    <div class="pacing-bar"><div class="pacing-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div></div>
+    <div class="pacing-label">${pct.toFixed(0)}% used</div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function render(campaigns, adsets) {
+  const c = currSign();
+
+  // Totals
+  let totalSpend = 0, totalBudget = 0, totalRoasNumer = 0, totalPurch = 0;
+  let activeCampaigns = 0;
+
+  campaigns.forEach(camp => {
+    const sp = insightSpend(camp);
+    totalSpend += sp;
+    const b = campaignBudget(camp);
+    if (b.lifetime > 0) totalBudget += b.lifetime;
+    else if (b.daily > 0) totalBudget += b.daily * 30;
+    const ro = insightRoas(camp);
+    if (sp > 0) totalRoasNumer += ro * sp;
+    totalPurch += insightPurchases(camp);
+    if (camp.status === 'ACTIVE') activeCampaigns++;
+  });
+
+  const totalRoas = totalSpend > 0 ? totalRoasNumer / totalSpend : 0;
+  const pacing    = totalBudget > 0 ? (totalSpend / totalBudget) * 100 : 0;
+
+  setCard('c-campaigns', {
+    label: 'Campaigns', icon: '📁',
+    value: campaigns.length,
+    sub:   `<span class="positive">${activeCampaigns} active</span>`,
+    accent: 'var(--blue)'
+  });
+
+  setCard('c-adsets', {
+    label: 'Ad Sets', icon: '🎯',
+    value: adsets.length,
+    sub:   `${adsets.filter(a => a.status === 'ACTIVE').length} active`,
+    accent: 'var(--purple)'
+  });
+
+  setCard('c-budget', {
+    label: 'Est. Total Budget', icon: '💼',
+    value: c + fmtK(totalBudget),
+    sub:   totalBudget > 0 ? pacingHtml(totalSpend, totalBudget) : 'Lifetime budgets vary',
+    accent: 'var(--teal)'
+  });
+
+  setCard('c-spend', {
+    label: 'Total Spend', icon: '💸',
+    value: c + money(totalSpend),
+    sub:   totalBudget > 0 ? `${pacing.toFixed(1)}% of budget` : '—',
+    accent: 'var(--orange)'
+  });
+
+  setCard('c-roas', {
+    label: 'Blended ROAS', icon: '📈',
+    value: totalRoas > 0 ? num(totalRoas, 2) + 'x' : '—',
+    sub:   totalRoas >= 1
+      ? `<span class="positive">↑ Profitable</span>`
+      : totalRoas > 0 ? `<span class="negative">↓ Below break-even</span>` : '—',
+    accent: totalRoas >= 1 ? 'var(--green)' : 'var(--red)'
+  });
+
+  renderCharts(campaigns);
+  renderCampaignTable(campaigns, adsets);
+  renderAdsetTable(adsets);
+
+  document.getElementById('campaignCount').textContent = campaigns.length + ' campaigns';
+  document.getElementById('adsetCount').textContent    = adsets.length + ' ad sets';
+}
+
+function setCard(id, { label, icon, value, sub, accent }) {
+  document.getElementById(id).innerHTML = `
+    <div class="accent" style="background:${accent}"></div>
+    <div class="icon-bg">${icon}</div>
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-sub">${sub}</div>
+  `;
+}
+
+// ── CHARTS ──
+const PALETTE = ['#1877f2','#00c48c','#ff7c43','#a78bfa','#fbbf24','#ff4d6d','#22d3ee','#f472b6','#34d399','#fb923c'];
+
+function renderCharts(campaigns) {
+  const active = campaigns.filter(c => insightSpend(c) > 0).sort((a,b) => insightSpend(b) - insightSpend(a)).slice(0,10);
+  const labels  = active.map(c => c.name.length > 22 ? c.name.slice(0,22)+'…' : c.name);
+  const spends  = active.map(c => insightSpend(c));
+  const budgets = active.map(c => {
+    const b = campaignBudget(c);
+    return b.lifetime > 0 ? b.lifetime : b.daily > 0 ? b.daily * 30 : 0;
+  });
+
+  if (chartSpend) chartSpend.destroy();
+  chartSpend = new Chart(document.getElementById('chartSpend'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Budget (est.)',
+          data: budgets,
+          backgroundColor: 'rgba(107,117,152,0.25)',
+          borderColor: 'rgba(107,117,152,0.5)',
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: 'Spend',
+          data: spends,
+          backgroundColor: spends.map((sp, i) => {
+            const b = budgets[i];
+            if (!b) return 'rgba(24,119,242,0.7)';
+            const p = sp / b;
+            return p > 0.9 ? 'rgba(255,77,109,0.7)' : p > 0.7 ? 'rgba(251,191,36,0.7)' : 'rgba(0,196,140,0.7)';
+          }),
+          borderWidth: 0,
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#6b7598', font: { family: 'Inter', size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const c = currSign();
+              return ctx.dataset.label + ': ' + c + money(ctx.parsed.y);
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color:'#6b7598', font:{ family:'Inter', size:10 } }, grid:{ color:'rgba(255,255,255,0.03)' } },
+        y: { ticks: { color:'#6b7598', callback: v => currSign() + fmtK(v), font:{ size:10 } }, grid:{ color:'rgba(255,255,255,0.03)' }, beginAtZero: true }
+      }
+    }
+  });
+
+  if (chartBudget) chartBudget.destroy();
+  chartBudget = new Chart(document.getElementById('chartBudget'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: spends,
+        backgroundColor: PALETTE,
+        borderColor: '#131828',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { position:'right', labels:{ color:'#6b7598', font:{ family:'Inter', size:10 }, boxWidth:12, padding:12 } },
+        tooltip: { callbacks: { label: ctx => currSign() + money(ctx.parsed) + ' (' + ctx.label + ')' } }
+      }
+    }
+  });
+}
+
+// ── CAMPAIGN TABLE ──
+function renderCampaignTable(campaigns, adsets) {
+  const wrap = document.getElementById('campaignTableWrap');
+  if (!campaigns.length) {
+    wrap.innerHTML = '<div class="empty"><div class="big">📁</div><p>No campaigns found</p></div>';
+    return;
+  }
+
+  const c = currSign();
+  const sorted = [...campaigns].sort((a,b) => insightSpend(b) - insightSpend(a));
+
+  // Build adset map
+  const adsetMap = {};
+  adsets.forEach(a => {
+    if (!adsetMap[a.campaign_id]) adsetMap[a.campaign_id] = [];
+    adsetMap[a.campaign_id].push(a);
+  });
+
+  let html = `<table>
+    <thead><tr>
+      <th>Campaign</th>
+      <th>Objective</th>
+      <th>Status</th>
+      <th>Budget Type</th>
+      <th>Budget</th>
+      <th>Spend</th>
+      <th>Pacing</th>
+      <th>ROAS</th>
+      <th>Purchases</th>
+      <th>Revenue</th>
+      <th>Impressions</th>
+      <th>Reach</th>
+      <th>Clicks</th>
+      <th>Start</th>
+      <th>End</th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach((camp, idx) => {
+    const sp  = insightSpend(camp);
+    const ro  = insightRoas(camp);
+    const pu  = insightPurchases(camp);
+    const rv  = insightRevenue(camp);
+    const imp = insightImp(camp);
+    const re  = insightReach(camp);
+    const cl  = insightClicks(camp);
+    const b   = campaignBudget(camp);
+    const budgetAmt = b.lifetime > 0 ? b.lifetime : b.daily > 0 ? b.daily : 0;
+    const campAdsets = adsetMap[camp.id] || [];
+
+    html += `<tr class="campaign-row" onclick="toggleAdsets('ads_${camp.id}')">
+      <td>▶ ${camp.name}</td>
+      <td><span class="obj">${objLabel(camp.objective)}</span></td>
+      <td>${statusBadge(camp.status)}</td>
+      <td style="color:var(--muted)">${b.type}</td>
+      <td>${budgetAmt > 0 ? c + money(budgetAmt) : '—'}</td>
+      <td>${c}${money(sp)}</td>
+      <td>${pacingHtml(sp, budgetAmt)}</td>
+      <td class="${roasClass(ro)}">${ro > 0 ? num(ro,2)+'x' : '—'}</td>
+      <td>${num(pu)}</td>
+      <td>${rv > 0 ? c+money(rv) : '—'}</td>
+      <td>${fmtK(imp)}</td>
+      <td>${fmtK(re)}</td>
+      <td>${num(cl)}</td>
+      <td style="color:var(--muted);font-size:11px">${fmtDate(camp.start_time)}</td>
+      <td style="color:var(--muted);font-size:11px">${fmtDate(camp.stop_time)}</td>
+    </tr>`;
+
+    if (campAdsets.length) {
+      html += `<tr><td colspan="15" style="padding:0">
+        <div class="adset-section" id="ads_${camp.id}">
+          <table style="width:100%;margin-left:24px;opacity:.85">
+            <thead><tr>
+              <th>Ad Set</th><th>Status</th><th>Budget</th><th>Spend</th><th>ROAS</th>
+              <th>Purchases</th><th>Impressions</th><th>Reach</th><th>Start</th><th>End</th>
+            </tr></thead><tbody>`;
+
+      campAdsets.forEach(as => {
+        const asp = insightSpend(as);
+        const aro = insightRoas(as);
+        const apu = insightPurchases(as);
+        const aim = insightImp(as);
+        const are = insightReach(as);
+        const ab  = campaignBudget(as);
+        const aba = ab.lifetime > 0 ? ab.lifetime : ab.daily > 0 ? ab.daily : 0;
+
+        html += `<tr>
+          <td style="padding-left:24px">↳ ${as.name}</td>
+          <td>${statusBadge(as.status)}</td>
+          <td>${aba > 0 ? c+money(aba) : '—'}</td>
+          <td>${c}${money(asp)}</td>
+          <td class="${roasClass(aro)}">${aro > 0 ? num(aro,2)+'x' : '—'}</td>
+          <td>${num(apu)}</td>
+          <td>${fmtK(aim)}</td>
+          <td>${fmtK(are)}</td>
+          <td style="color:var(--muted);font-size:11px">${fmtDate(as.start_time)}</td>
+          <td style="color:var(--muted);font-size:11px">${fmtDate(as.end_time)}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table></div></td></tr>';
+    }
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+function toggleAdsets(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('open');
+}
+
+// ── AD SET TABLE ──
+function renderAdsetTable(adsets) {
+  const wrap = document.getElementById('adsetTableWrap');
+  if (!adsets.length) {
+    wrap.innerHTML = '<div class="empty"><div class="big">🎯</div><p>No ad sets found</p></div>';
+    return;
+  }
+
+  const c = currSign();
+  const sorted = [...adsets].sort((a,b) => insightSpend(b) - insightSpend(a));
+
+  let html = `<table class="adset-table">
+    <thead><tr>
+      <th>Ad Set</th>
+      <th>Status</th>
+      <th>Budget Type</th>
+      <th>Budget</th>
+      <th>Spend</th>
+      <th>Pacing</th>
+      <th>ROAS</th>
+      <th>Purchases</th>
+      <th>Revenue</th>
+      <th>Impressions</th>
+      <th>Reach</th>
+      <th>Clicks</th>
+      <th>Start</th>
+      <th>End</th>
+    </tr></thead><tbody>`;
+
+  sorted.forEach(as => {
+    const sp  = insightSpend(as);
+    const ro  = insightRoas(as);
+    const pu  = insightPurchases(as);
+    const rv  = insightRevenue(as);
+    const imp = insightImp(as);
+    const re  = insightReach(as);
+    const cl  = insightClicks(as);
+    const b   = campaignBudget(as);
+    const bAmt = b.lifetime > 0 ? b.lifetime : b.daily > 0 ? b.daily : 0;
+
+    html += `<tr>
+      <td style="font-weight:600">${as.name}</td>
+      <td>${statusBadge(as.status)}</td>
+      <td style="color:var(--muted)">${b.type}</td>
+      <td>${bAmt > 0 ? c+money(bAmt) : '—'}</td>
+      <td>${c}${money(sp)}</td>
+      <td>${pacingHtml(sp, bAmt)}</td>
+      <td class="${roasClass(ro)}">${ro > 0 ? num(ro,2)+'x' : '—'}</td>
+      <td>${num(pu)}</td>
+      <td>${rv > 0 ? c+money(rv) : '—'}</td>
+      <td>${fmtK(imp)}</td>
+      <td>${fmtK(re)}</td>
+      <td>${num(cl)}</td>
+      <td style="color:var(--muted);font-size:11px">${fmtDate(as.start_time)}</td>
+      <td style="color:var(--muted);font-size:11px">${fmtDate(as.end_time)}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+//  ERROR / EMPTY
+// ══════════════════════════════════════════════
+function showError(msg) {
+  const el = document.getElementById('errorBox');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('errorBox').style.display = 'none';
+}
+</script>
+</body>
+</html>
